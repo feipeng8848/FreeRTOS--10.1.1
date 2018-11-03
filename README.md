@@ -17,7 +17,7 @@ FreeRTOS 源代码遵守 MISRA (Motor Industry Software Reliability Association)
 RTOS内核与Demo程序源代码使用下面的约定：
 
 #### 变量
-char类型的变量以 c 为前缀 
+char类型的变量以 c 为前缀
 short类型的变量以 s 为前缀 
 long类型的变量以 l 为前缀 
 float类型的变量以 f 为前缀 
