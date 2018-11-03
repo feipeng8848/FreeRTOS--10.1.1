@@ -68,9 +68,24 @@ portBASE_TYPE
 # 二、源代码分析
 ## 1、任务的实现思路
 a、任务的构成
+一个任务，有任务名称、任务函数（实际要被执行的那部分代码，这个是我们自己写的）、优先级、堆栈等，这些都是在创建任务需要用到的。在FreeRTOS中，任务相关的这些信息保存在"tskTCB->pxStack"指向的堆栈中。再重复一下：“任务相关的这些信息保存在tskTCB->pxStack指向的堆栈中”。
 
+tskTCB是一个结构体，下面是tskTCB（任务控制块）的定义：
+```c
+typedef struct tskTaskControlBlock /* The old naming convention is used to prevent breaking kernel aware debuggers. */
+{
+	volatile StackType_t	*pxTopOfStack;	/*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
+	ListItem_t			xStateListItem;	/*< The list that the state list item of a task is reference from denotes the state of that task (Ready, Blocked, Suspended ). */
+	ListItem_t			xEventListItem;		/*< Used to reference a task from an event list. */
+	UBaseType_t			uxPriority;			/*< The priority of the task.  0 is the lowest priority. */
+	StackType_t			*pxStack;			/*< Points to the start of the stack. */
+	char				pcTaskName[ configMAX_TASK_NAME_LEN ];/*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+    //任务控制块还有很多东西，这里只做示意所以删掉了。
+} tskTCB;
+```
 
-b、软件维护几个链表。每个被创建的任务根据状态被添加到不同的链表中，实现任务的执行或者切换。系统每一次异常中断后切换任务。
+b、软件维护几个链表。这些链表保存着不同状态任务的任务控制块,这个说法实际上不太严谨，因为链表中并没有保存整个TCB结构体的数据，而是只保存了“&( ( pxTCB )->xStateListItem )”，详细代码在task.c line238。
+每个被创建的任务根据状态被添加到不同的链表中，实现任务的执行或者切换。系统每一次异常中断后切换任务。
 
 ```c
 // 就绪任务链表 每个优先级对应一个链表
