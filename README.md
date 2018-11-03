@@ -66,4 +66,82 @@ portBASE_TYPE
 
 ---
 # 二、源代码分析
-1、list.c
+## 1、任务的实现思路
+a、任务的构成
+
+
+b、软件维护几个链表。每个被创建的任务根据状态被添加到不同的链表中，实现任务的执行或者切换。系统每一次异常中断后切换任务。
+
+```c
+// 就绪任务链表 每个优先级对应一个链表
+PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];
+// 延时任务链表
+PRIVILEGED_DATA static List_t xDelayedTaskList1;                        
+PRIVILEGED_DATA static List_t xDelayedTaskList2;                        
+PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;
+PRIVILEGED_DATA static List_t * volatile pxOverflowDelayedTaskList;
+// 就绪任务链表，当任务调度器被挂起时，状态变换为就绪的任务先保存在此， 
+// 恢复后移到 pxReadyTasksLists 中
+PRIVILEGED_DATA static List_t xPendingReadyList;                
+// 任务删除后，等待空闲任务释放内存
+#if( INCLUDE_vTaskDelete == 1 )
+    PRIVILEGED_DATA static List_t xTasksWaitingTermination;
+    PRIVILEGED_DATA static volatile UBaseType_t uxDeletedTasksWaitingCleanUp = 
+        ( UBaseType_t ) 0U;
+#endif
+// 被挂起的任务链表
+#if ( INCLUDE_vTaskSuspend == 1 )
+    PRIVILEGED_DATA static List_t xSuspendedTaskList;                   
+#endif
+```
+
+## 2、创建任务流程（只标示出主要操作）
+
+```c
+BaseType_t xTaskCreate(	TaskFunction_t pxTaskCode,      //该任务要执行的函数名
+                        const char * const pcName,		/*任务名称，lint !e971 Unqualified char types are allowed for strings and single characters only. */
+                        const configSTACK_DEPTH_TYPE usStackDepth,      //任务堆栈大小  
+                        void * const pvParameters,
+                        UBaseType_t uxPriority,
+                        TaskHandle_t * const pxCreatedTask ) //任务句柄，通过该句柄可以引用创建的任务。
+{
+    //a.根据堆栈增长方向确认如何申请内存
+    #if( portSTACK_GROWTH > 0 )
+    #else
+
+    //b.申请堆栈内存，下面已STM32的向下增长为例
+    pxStack = pvPortMalloc( ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ) ); 
+    
+    //c.申请任务控制块内存
+    pxNewTCB = ( TCB_t * ) pvPortMalloc( sizeof( TCB_t ) );   
+    
+    //d.初始化一个新任务
+    prvInitialiseNewTask( pxTaskCode, pcName, ( uint32_t ) usStackDepth, pvParameters, uxPriority, pxCreatedTask, pxNewTCB, NULL );
+	
+    //e.添加到任务就绪表中（通过任务控制块）    
+    prvAddNewTaskToReadyList( pxNewTCB );
+}                            
+```                        
+
+上面的代码中“d.初始化一个新任务”非常重要，着重说明
+
+```c
+static void prvInitialiseNewTask( 	TaskFunction_t pxTaskCode,
+									const char * const pcName,		/*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+									const uint32_t ulStackDepth,
+									void * const pvParameters,
+									UBaseType_t uxPriority,
+									TaskHandle_t * const pxCreatedTask,
+									TCB_t *pxNewTCB,
+									const MemoryRegion_t * const xRegions )
+{
+    //1、初始化堆栈为0xa5
+    //2、获取栈顶保存在pxTopOfSatck
+    //3、保存任务名字到pxNewTCB->pcTsakName
+    //4、保存任务优先级pxNewTCB->uxPriority
+    //5、初始化两个链表xStateListItem和xEventListItem
+    //6、初始化任务控制块的一些变量
+    //7、调用pxPortInitialiseStack()函数，初始化堆栈
+    //8、保存任务句柄（任务控制块）
+}                                    
+```
