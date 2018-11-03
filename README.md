@@ -3,7 +3,7 @@ FreeRTOS 10.1.1 2018-11-03下载自官网
 
 ---
 
-#一、代码规范
+# 一、代码规范
 FreeRTOS 源代码遵守 MISRA (Motor Industry Software Reliability Association) 规范。
 
 与 MISRA 标准有出入的地方如下：
@@ -12,11 +12,11 @@ FreeRTOS 源代码遵守 MISRA (Motor Industry Software Reliability Association)
 -当建立一个任务时，代码会直接处理堆栈的栈顶和栈底地址。由于不同的平台的总线宽度不同，这就需要代码中对指针变量进行算术运算。因此，对指针变量的算术运算是不可避免的。
 -trace 宏定义，默认情况下被定义为空，因此不会产生任何代码。
 
-##命名约定(Naming Conventions)
+## 命名约定(Naming Conventions)
 
 RTOS内核与Demo程序源代码使用下面的约定：
 
-####变量
+#### 变量
 char类型的变量以 c 为前缀 
 short类型的变量以 s 为前缀 
 long类型的变量以 l 为前缀 
@@ -28,17 +28,17 @@ double类型的变量以 d 为前缀
 无符号类型的变量有一个额外的前缀 u , 例如无符号short类型的变量前缀为 us
 
 
-####函数
+#### 函数
 文件内部函数以prv为前缀 
 API函数以其返回值类型为前缀，按照前面对变量的定义 
 函数的名字以其所在的文件名开头。如vTaskDelete函数在Task.c文件中定义 
 
-####宏定义
+#### 宏定义
 宏名以所在的文件的文件名的一部分作为前缀（开头），并且用小写。 
 比如, configUSE_PREEMPTION 在文件 FreeRTOSConifg.h 中. 
 除了前缀，其余部分用大写，下划线来分隔单词。
 
-####数据类型
+#### 数据类型
 
 基本数据类型可以直接使用，但是有如下的例外和规则：
 
@@ -56,13 +56,14 @@ portTickType
 portBASE_TYPE
 被定义为当前平台最佳的整形类型。例如，在一个 32 位的平台上， portBASE_TYPE 被定义为32 位的数据类型。在16位的平台上， portBASE_TYPE 则被定义为 16 位的数据类型。如果 portBASE_TYPE 被定义为 char 类型，则 必须为 signed char  类型，因为代码中用到这种类型作为一些函数的返回值类型，而返回值必须可以为负值以用来指示错误条件.
 
-####编程风格
+#### 编程风格
 缩进
 缩进使用 Tab . 一个 tab 等于 4 个空格.
 
-####注释 
+#### 注释 
 注释文字尽量不能超过 80 列，除非是用来描述一个参数。 
 不采用 C++ 类型的注释（//）。 
+
 ---
-二、源代码分析
+# 二、源代码分析
 1、list.c
