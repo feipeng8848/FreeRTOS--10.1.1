@@ -68,6 +68,7 @@ portBASE_TYPE
 # 二、源代码分析
 ## 1、任务的实现思路
 a、任务的构成
+
 一个任务，有任务名称、任务函数（实际要被执行的那部分代码，这个是我们自己写的）、优先级、堆栈等，这些都是在创建任务需要用到的。在FreeRTOS中，任务相关的这些信息保存在"tskTCB->pxStack"指向的堆栈中。再重复一下：“任务相关的这些信息保存在tskTCB->pxStack指向的堆栈中”。
 
 tskTCB是一个结构体，下面是tskTCB（任务控制块）的定义：
@@ -84,7 +85,9 @@ typedef struct tskTaskControlBlock /* The old naming convention is used to preve
 } tskTCB;
 ```
 
-b、软件维护几个链表。这些链表保存着不同状态任务的任务控制块,这个说法实际上不太严谨，因为链表中并没有保存整个TCB结构体的数据，而是只保存了“&( ( pxTCB )->xStateListItem )”，详细代码在task.c line238。
+b、软件维护几个链表。
+
+这些链表保存着不同状态任务的任务控制块,这个说法实际上不太严谨，因为链表中并没有保存整个TCB结构体的数据，而是只保存了“&( ( pxTCB )->xStateListItem )”，详细代码在task.c line238。
 每个被创建的任务根据状态被添加到不同的链表中，实现任务的执行或者切换。系统每一次异常中断后切换任务。
 
 ```c
