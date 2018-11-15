@@ -66,8 +66,36 @@ portBASE_TYPE
 
 ---
 # 二、源代码分析
+## 0、一些基本的数据类型
+a、TickType_t
+
+file:protmacro.h
+```c
+#if( configUSE_16_BIT_TICKS == 1 )
+	typedef uint16_t TickType_t;
+	#define portMAX_DELAY ( TickType_t ) 0xffff
+#else
+	typedef uint32_t TickType_t;
+	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+
+	/* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+	not need to be guarded with a critical section. */
+	#define portTICK_TYPE_IS_ATOMIC 1
+#endif
+```
+b、StackType_t、BaseType_t、UBaseType_t
+
+file:protmacro.h
+```c
+typedef portSTACK_TYPE StackType_t;
+typedef long BaseType_t;
+typedef unsigned long UBaseType_t;
+```
+
+
+
 ## 1、任务的实现思路
-a、任务的构成
+a、任务的构成，数据类型
 
 一个任务，有任务名称、任务函数（实际要被执行的那部分代码，这个是我们自己写的）、优先级、堆栈等，这些都是在创建任务需要用到的。在FreeRTOS中，任务相关的这些信息保存在"tskTCB->pxStack"指向的堆栈中。再重复一下：“任务相关的这些信息保存在tskTCB->pxStack指向的堆栈中”。
 
@@ -82,6 +110,16 @@ typedef struct tskTaskControlBlock /* The old naming convention is used to preve
 	StackType_t			*pxStack;			/*< Points to the start of the stack. */
 	char				pcTaskName[ configMAX_TASK_NAME_LEN ];/*< Descriptive name given to the task when created.  Facilitates debugging only. */ /*lint !e971 Unqualified char types are allowed for strings and single characters only. */
     //任务控制块还有很多东西，这里只做示意所以删掉了。
+} tskTCB;
+```
+另外一个与次相关的数据类型：TaskHandle_t，实际上是tskTCB的指针
+```c
+struct tskTaskControlBlock; /* The old naming convention is used to prevent breaking kernel aware debuggers. */
+typedef struct tskTaskControlBlock* TaskHandle_t;
+//TaskHandle_t实际上是定义在task.c的tskTCB
+typedef struct tskTaskControlBlock /* The old naming convention is used to prevent breaking kernel aware debuggers. */
+{
+	/**/
 } tskTCB;
 ```
 
